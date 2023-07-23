@@ -1,11 +1,36 @@
-# txteditor
+<p align="center"><a href="" target="_blank" rel="noreferrer noopener"><img width="700" alt="light:write logo" src=".\assets\images\lw_dark.png"></a></p>
 
-A formattable text editor with IDE-style typing.
+## 
+<h2 align="center">
+<a rel="noreferrer noopener" href="#">An efficient, lightweight text editor.</a>
+(coming soon)
+<br/><br/>
+</h2>
 
-In development.
+<h1 align="center">NOTE: light:write is in active development, and thus <ins>not available at this time.</ins></h1>
+
+<h3 align="center"><ins>Just Text:</ins></h3>
+<p>light:write is a minimalist text editor to produce high quality, stylized text with ease.</p>
+
+- Lightweight like Notepad,
+- Efficient like IDEs,
+- Stylized like Photoshop.
+
+All in a meticulously designed, lightweight package.
+## 🦢 My Tenets
+
+### 🚀 Speed
+- its slow
+
+### 🌠 Efficiency
+- doesnt even work
+
+### 🎆 Style
+- no styling
+
+## Installation (In development.)
+1. <a rel="noreferrer noopener" href="#">Download here.</a>
+2. Click install.
 
 TODO:
-- Make saving files not exit to main menu
-- Styling
-- When saving doesnt exist to main menu, make sure user isnt reprompted to name file
-- IDE style hotkeys.
+- everything
