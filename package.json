@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@babel/core": "^7.22.9",
+    "@types/katex": "^0.16.1",
     "@types/quill": "^2.0.10",
     "autoprefixer": "^10.4.14",
     "babel": "^6.23.0",
@@ -32,18 +33,19 @@
     "file-loader": "^6.2.0",
     "katex": "^0.16.8",
     "postcss": "^8.4.27",
-    "quilljs": "^0.18.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-latex": "^2.0.0",
     "react-markdown": "^8.0.7",
+    "react-split": "^2.0.14",
     "slate": "^0.94.1",
     "slate-react": "^0.97.2",
     "tailwindcss": "^3.3.3",
     "typescript": "^5.1.6"
   },
   "scripts": {
-    "start": "webpack --mode development && electron .",
-    "build": "./node_modules/.bin/tsc"
+    "dev": "webpack --mode development && electron .",
+    "build": "./node_modules/.bin/tsc",
+    "start": "webpack --mode production && electron ."
   }
 }

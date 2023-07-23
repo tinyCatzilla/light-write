@@ -2,5 +2,61 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
+.app-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    min-height: 100%;
+    width: 100vw;
+    background:rgba(255, 255, 0, 0.356);
+  }
+  
 
+  .edit-container, .preview-container {
+    /* width: 49.5%; */
+    /* width: calc(50% - 10px); */
+    width: 100%;
+    border: 1px solid #000000;
+    border-radius: 1px;
+    padding: 20px;
+    height: calc(100vh - 40px); /* 40px = parent padding (.app-container) * 2 */
+  }
+
+  .slate-editor {
+    height: calc(100vh - 80px); 
+    width: 100%; 
+    overflow: auto; /* Add scrollbars when content overflows */
+  }
+
+  .edit-container {
+    background:rgba(255, 0, 0, 0.308);
+  }
+  
+  .preview-container {
+    overflow-y: auto;
+    background:rgba(0, 68, 255, 0.377);
+    word-wrap: break-word;
+    white-space: initial;
+  }
+  
+  .katex .katex-html {
+    display: none;
+  }
+
+  .split {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.gutter {
+    background-color: #eee;
+    background-repeat: no-repeat;
+    background-position: 50%;
+}
+
+.gutter.gutter-horizontal {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+    cursor: col-resize;
+}
   

@@ -1,22 +1,28 @@
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { createEditor, Editor, BaseEditor, Text, Transforms, Range, Descendant } from 'slate';
+import { createEditor, Editor, Text, Descendant } from 'slate';
 import { Slate, Editable, withReact, RenderLeafProps, RenderElementProps, useSlate } from 'slate-react';
+import { latexMathToHtml } from './mathToHTML';
+import Split from 'react-split'
+import './style.css';
+
 
 
 type CustomElement = {
-  type: 'paragraph' | 'code';
+  type: 'paragraph';
   children: CustomText[];
 };
 
 type CustomText = {
   text: string;
+  code?: boolean;
   font?: string;
   size?: string;
   color?: string;
   bold?: boolean;
   underline?: boolean;
 };
+
 declare module 'slate' {
   interface CustomTypes {
     Element: CustomElement;
@@ -27,7 +33,7 @@ declare module 'slate' {
 const initialValue: CustomElement[] = [
   {
     type: 'paragraph',
-    children: [{ text: 'A line of text in a paragraph.', font: 'Arial', size: '16px', color: '#000000', bold: false, underline: false}],
+    children: [{ text: String.raw`I love LaTeX!! $$\int_0^1 \Gamma^{(\alpha-1)}(x)$$`, font: 'Arial', size: '16px', color: '#000000', bold: false, underline: false}],
   },
 ];
 
@@ -35,13 +41,6 @@ const DefaultElement = (props: RenderElementProps) => {
   return <p {...props.attributes}>{props.children}</p>;
 };
 
-const CodeElement = (props: RenderElementProps) => {
-  return (
-    <pre {...props.attributes}>
-      <code>{props.children}</code>
-    </pre>
-  )
-}
 
 const FontFamilyDropdown = () => {
   const editor = useSlate();
@@ -162,21 +161,96 @@ const UnderlineButton = () => {
   return <button onMouseDown={handleClick}>Underline</button>;
 };
 
+const InlineCodeButton = () => {
+  const editor = useSlate();
+
+  const handleClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    const marks = Editor.marks(editor);
+    const isCode = marks ? marks.code === true : false;
+    Editor.addMark(editor, 'code', !isCode);
+  };
+
+  return <button onMouseDown={handleClick}>Code</button>;
+};
+
+const serializeHTML = (nodes: Descendant[]): string => {
+  let html = '';
+  for (let node of nodes) {
+    if (Text.isText(node)) {
+      let span = node.text;
+
+      // // Check if text contains inline LaTeX
+      // if (/\$(.*?)\$/.test(span)) {
+      //   span = span.replace(/\$(.*?)\$/g, (match, latex) => {
+      //     return latexMathToHtml(`$${latex}$`);
+      //   });
+      // }
+
+      // // Check if text contains display LaTeX
+      // if (/\$\$(.*?)\$\$/.test(span)) {
+      //   span = span.replace(/\$\$(.*?)\$\$/g, (match, latex) => {
+      //     return latexMathToHtml(`$${latex}$`);
+      //   });
+      // }
+
+      // Check if text contains display LaTeX
+      if (/\$\$(.*?)\$\$/.test(span)) {
+        span = span.replace(/\$\$(.*?)\$\$/g, (match, latex) => {
+          return latexMathToHtml(`$$${latex}$$`);
+        });
+      }
+
+      // Check if text contains inline LaTeX
+      if (/\$(.*?)\$/.test(span)) {
+        span = span.replace(/\$(.*?)\$/g, (match, latex) => {
+          return latexMathToHtml(`$${latex}$`);
+        });
+      }
+
+
+      
+      if (node.bold) {
+        span = `<strong>${span}</strong>`;
+      }
+      if (node.underline) {
+        span = `<u>${span}</u>`;
+      }
+      if (node.code) {
+        span = `<code>${span}</code>`;
+      }
+      if (node.font) {
+        span = `<span style="font-family: ${node.font}">${span}</span>`;
+      }
+      if (node.size) {
+        span = `<span style="font-size: ${node.size}">${span}</span>`;
+      }
+      if (node.color) {
+        span = `<span style="color: ${node.color}">${span}</span>`;
+      }
+      html += span;
+    } else if ('children' in node) {
+      html += `<p>${serializeHTML(node.children)}</p>`;
+    }
+  }
+  return html;
+};
+
+
 const App: React.FC = () => {
   const editor = useMemo(() => withReact(createEditor()), []);
   const [value, setValue] = useState<Descendant[]>(initialValue);
 
   const renderElement = useCallback((props: RenderElementProps) => {
-    switch (props.element.type) {
-      case 'code':
-        return <CodeElement {...props} />;
-      default:
-        return <DefaultElement {...props} />;
-    }
-  }, []);
+    return <DefaultElement {...props} />;
+  }, []);  
 
   const renderLeaf = useCallback((props: RenderLeafProps) => {
     let { attributes, children, leaf } = props;
+
+    if (leaf.code) {
+      children = <code style={{ backgroundColor: '#f8f8f8', fontFamily: 'Courier New' }}>{children}</code>;
+    }    
 
     if (leaf.font) {
       children = <span style={{ fontFamily: leaf.font }}>{children}</span>;
@@ -204,7 +278,7 @@ const App: React.FC = () => {
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
       if (!editor.selection) return;
-      const [leaf] = Editor.leaf(editor, editor.selection);
+      // const [leaf] = Editor.leaf(editor, editor.selection);
 
       // Handle 'bold' keyboard shortcut
       if (event.key === 'b' && event.ctrlKey) {
@@ -222,38 +296,46 @@ const App: React.FC = () => {
         Editor.addMark(editor, 'underline', !isUnderline);
       }
 
-      // // Handle 'code' keyboard shortcut
-      // else if (event.key === '`' && event.ctrlKey) {
-      //   event.preventDefault();
-      //   const [match] = Editor.nodes(editor, {
-      //     match: n => n.type === 'code',
-      //   });
-      //   Transforms.setNodes(
-      //     editor,
-      //     { type: 'code' },
-      //     { match: n => Editor.isBlock(editor, n) }
-      //   );
-      // }
+      // Handle 'code' keyboard shortcut
+      else if (event.key === '`' && event.ctrlKey) {
+        event.preventDefault();
+        const marks = Editor.marks(editor);
+        const isCode = marks ? marks.code === true : false;
+        Editor.addMark(editor, 'code', !isCode);
+      }
     },
     [editor]
   );
 
   return (
-    <div>
-      <Slate editor={editor} initialValue={value} onChange={setValue}>
-        <div>
-          <FontFamilyDropdown/>
-          <FontSizeDropdown/>
-          <TextColorButton />
-          <BoldButton />
-          <UnderlineButton />
+    <div className="app-container">
+      <Split 
+        className="split"
+        minSize={200}
+      >
+        <div className="edit-container">
+          <Slate editor={editor} initialValue={value} onChange={setValue}>
+            <div className = "toolbar">
+              <FontFamilyDropdown/>
+              <FontSizeDropdown/>
+              <TextColorButton />
+              <BoldButton />
+              <UnderlineButton />
+              <InlineCodeButton />
+            </div>
+            <Editable
+              className="slate-editor"
+              renderLeaf={renderLeaf}
+              renderElement={renderElement}
+              onKeyDown={handleKeyDown}
+            />
+          </Slate>
         </div>
-        <Editable
-          renderLeaf={renderLeaf}
-          renderElement={renderElement}
-          onKeyDown={handleKeyDown}
-        />
-      </Slate>
+        <div className="preview-container">
+          <h2>Preview</h2>
+          <div dangerouslySetInnerHTML = {{ __html: serializeHTML(value) }} />
+        </div>
+      </Split>
     </div>
   );
 };
