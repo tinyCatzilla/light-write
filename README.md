@@ -1,15 +1,14 @@
 <p align="center"><a href="" target="_blank" rel="noreferrer noopener"><img width="700" alt="light:write logo" src=".\assets\images\lw_dark.png"></a></p>
 
-## 
+
 <h2 align="center">
 <a rel="noreferrer noopener" href="#">An efficient, lightweight text editor.</a>
-(coming soon)
 <br/><br/>
 </h2>
 
-<h1 align="center">NOTE: light:write is in active development, and thus <ins>not available at this time.</ins></h1>
+<h2 align="center">⚠️ light:write is in active development</ins><br><br></h1>
 
-### Just Text:
+### Just Text
 <p>light:write is a minimalist text editor to produce high quality, stylized text with ease.</p>
 
 - Lightweight like Notepad,
@@ -17,7 +16,10 @@
 - Stylized like Photoshop.
 
 All in a meticulously designed, lightweight package.
-## 🦢 My Tenets
+
+<br>
+
+## 🦢 Tenets
 
 ### 🚀 Speed
 - Optimized to use ~25MB memory total.
@@ -34,7 +36,9 @@ All in a meticulously designed, lightweight package.
 - Light, Dark, and Spring themes (more to come).
 - Native rendering support for LaTeX, code blocks, and HTML.
 
-## Installation (In development.)
+<br>
+
+## Installation (⚠️ In development)
 1. <a rel="noreferrer noopener" href="#">Download</a>
 2. `cd` into the directory.
 3. Run `yarn install` to install dependencies.
