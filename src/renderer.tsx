@@ -4,8 +4,42 @@ import { createEditor, Editor, Text, Descendant } from 'slate';
 import { Slate, Editable, withReact, RenderLeafProps, RenderElementProps, useSlate } from 'slate-react';
 import { latexMathToHtml } from './mathToHTML';
 import Split from 'react-split'
+// import { ipcRenderer } from 'electron';
 import './style.css';
+import './themes/light.css';
 
+
+declare global {
+  interface Window { electron: any; }
+}
+
+window.electron.onThemeChange((event: any, theme: any) => {
+  applyTheme(theme);
+});
+
+let textColor = '#000000';
+
+async function applyTheme(theme: string) {
+  let themeStyles = document.querySelector<HTMLStyleElement>('#theme-stylesheet');
+  if(themeStyles){
+    switch (theme) {
+      case 'default':
+        themeStyles.innerText = await fetch('./src/themes/light.css').then(res => res.text());
+        textColor = '#000000';
+        break;
+      case 'dark':
+        themeStyles.innerText = await fetch('./src/themes/dark.css').then(res => res.text());
+        textColor = '#ffffff';
+        break;
+      case 'orange':
+        themeStyles.innerText = await fetch('./src/themes/orange.css').then(res => res.text());
+        textColor = '#000000';
+        break;
+    }
+  } else {
+    console.error("Cannot find element with id 'theme-stylesheet'");
+  }
+}
 
 
 type CustomElement = {
@@ -33,7 +67,7 @@ declare module 'slate' {
 const initialValue: CustomElement[] = [
   {
     type: 'paragraph',
-    children: [{ text: String.raw`I love LaTeX!! $$\int_0^1 \Gamma^{(\alpha-1)}(x)$$`, font: 'Arial', size: '16px', color: '#000000', bold: false, underline: false}],
+    children: [{ text: String.raw`I love LaTeX!! $\int_0^1 \Gamma^{(\alpha-1)}(x)$`, font: 'Arial', size: '16px', color: textColor, bold: false, underline: false}],
   },
 ];
 
@@ -110,7 +144,7 @@ const FontSizeDropdown = () => {
 
 const TextColorButton = () => {
   const editor = useSlate();
-  const [color, setColor] = useState('#000000');
+  const [color, setColor] = useState(textColor);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newColor = event.target.value;
@@ -144,7 +178,8 @@ const BoldButton = () => {
     Editor.addMark(editor, 'bold', !isBold);
   };
 
-  return <button onMouseDown={handleClick}>Bold</button>;
+  return <button className="toolbarBtn" onMouseDown={handleClick}><i className="fa-solid fa-bold"></i>
+  </button>;
 };
 
 
@@ -158,7 +193,7 @@ const UnderlineButton = () => {
     Editor.addMark(editor, 'underline', !isUnderline);
   };
 
-  return <button onMouseDown={handleClick}>Underline</button>;
+  return <button className="toolbarBtn" onMouseDown={handleClick}><i className="fa-solid fa-underline"></i></button>;
 };
 
 const InlineCodeButton = () => {
@@ -171,7 +206,7 @@ const InlineCodeButton = () => {
     Editor.addMark(editor, 'code', !isCode);
   };
 
-  return <button onMouseDown={handleClick}>Code</button>;
+  return <button className="toolbarBtn" onMouseDown={handleClick}><i className="fa-solid fa-code"></i></button>;
 };
 
 const serializeHTML = (nodes: Descendant[]): string => {
@@ -332,8 +367,10 @@ const App: React.FC = () => {
           </Slate>
         </div>
         <div className="preview-container">
-          <h2>Preview</h2>
-          <div dangerouslySetInnerHTML = {{ __html: serializeHTML(value) }} />
+          <div className="preview-box">
+            <h2>Preview</h2>
+            <div dangerouslySetInnerHTML = {{ __html: serializeHTML(value) }} />
+          </div>
         </div>
       </Split>
     </div>

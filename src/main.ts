@@ -1,8 +1,10 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, Menu, ipcMain } from 'electron'
 import * as path from 'path'
 import * as url from 'url'
+import { mainMenu } from './menu'
 
 let mainWindow: Electron.BrowserWindow | null
+
 
 function createWindow () {
   mainWindow = new BrowserWindow({
@@ -13,6 +15,8 @@ function createWindow () {
     minHeight: 600,
     webPreferences: {
       nodeIntegration: true,
+      contextIsolation: true,
+      preload: path.join(app.getAppPath(), 'dist', 'preload.js')
     },
     icon: __dirname + '../assets/images/app_icon.ico'
   })
@@ -25,10 +29,20 @@ function createWindow () {
     })
   )
 
+  ipcMain.on('theme-change', (event, theme) => {
+    // When we receive a 'theme-change' event from the renderer process,
+    // send it back to the renderer process
+    mainWindow?.webContents.send('theme-change', theme);
+  })
+
   mainWindow.on('closed', () => {
     mainWindow = null
   })
+
+  Menu.setApplicationMenu(mainMenu)
 }
+
+
 
 app.on('ready', createWindow)
 
