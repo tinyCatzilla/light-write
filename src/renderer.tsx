@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { createEditor, Editor, Text, Descendant } from 'slate';
+import { createEditor, Editor, Text, Descendant, Transforms } from 'slate';
 import { Slate, Editable, withReact, RenderLeafProps, RenderElementProps, useSlate } from 'slate-react';
 import { latexMathToHtml } from './mathToHTML';
 import Split from 'react-split'
@@ -13,33 +13,33 @@ declare global {
   interface Window { electron: any; }
 }
 
-window.electron.onThemeChange((event: any, theme: any) => {
-  applyTheme(theme);
-});
+// window.electron.onThemeChange((event: any, theme: any) => {
+//   applyTheme(theme);
+// });
 
-let textColor = '#000000';
+// let textColor = '#000000';
 
-async function applyTheme(theme: string) {
-  let themeStyles = document.querySelector<HTMLStyleElement>('#theme-stylesheet');
-  if(themeStyles){
-    switch (theme) {
-      case 'default':
-        themeStyles.innerText = await fetch('./src/themes/light.css').then(res => res.text());
-        textColor = '#000000';
-        break;
-      case 'dark':
-        themeStyles.innerText = await fetch('./src/themes/dark.css').then(res => res.text());
-        textColor = '#ffffff';
-        break;
-      case 'orange':
-        themeStyles.innerText = await fetch('./src/themes/orange.css').then(res => res.text());
-        textColor = '#000000';
-        break;
-    }
-  } else {
-    console.error("Cannot find element with id 'theme-stylesheet'");
-  }
-}
+// async function applyTheme(theme: string) {
+//   let themeStyles = document.querySelector<HTMLStyleElement>('#theme-stylesheet');
+//   if(themeStyles){
+//     switch (theme) {
+//       case 'default':
+//         themeStyles.innerText = await fetch('./src/themes/light.css').then(res => res.text());
+//         textColor = '#000000';
+//         break;
+//       case 'dark':
+//         themeStyles.innerText = await fetch('./src/themes/dark.css').then(res => res.text());
+//         textColor = '#ffffff';
+//         break;
+//       case 'orange':
+//         themeStyles.innerText = await fetch('./src/themes/orange.css').then(res => res.text());
+//         textColor = '#000000';
+//         break;
+//     }
+//   } else {
+//     console.error("Cannot find element with id 'theme-stylesheet'");
+//   }
+// }
 
 
 type CustomElement = {
@@ -67,7 +67,7 @@ declare module 'slate' {
 const initialValue: CustomElement[] = [
   {
     type: 'paragraph',
-    children: [{ text: String.raw`I love LaTeX!! $\int_0^1 \Gamma^{(\alpha-1)}(x)$`, font: 'Arial', size: '16px', color: textColor, bold: false, underline: false}],
+    children: [{ text: String.raw`I love LaTeX!! $\int_0^1 \Gamma^{(\alpha-1)}(x)$`, font: 'Arial', size: '16px', color: '#000000', bold: false, underline: false}],
   },
 ];
 
@@ -144,7 +144,7 @@ const FontSizeDropdown = () => {
 
 const TextColorButton = () => {
   const editor = useSlate();
-  const [color, setColor] = useState(textColor);
+  const [color, setColor] = useState('#000000');
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newColor = event.target.value;
@@ -279,6 +279,51 @@ const App: React.FC = () => {
   const renderElement = useCallback((props: RenderElementProps) => {
     return <DefaultElement {...props} />;
   }, []);  
+
+  const [theme, setTheme] = useState('default');  // you can manage your theme state here
+
+  async function applyTheme(theme: string) {
+    let themeStyles = document.querySelector<HTMLStyleElement>('#theme-stylesheet');
+    let newColor = '#000000';
+    if(themeStyles){
+      switch (theme) {
+        case 'default':
+          themeStyles.innerText = await fetch('./src/themes/light.css').then(res => res.text());
+          newColor = '#000000';
+          break;
+        case 'dark':
+          themeStyles.innerText = await fetch('./src/themes/dark.css').then(res => res.text());
+          newColor = '#ffffff';
+          break;
+        case 'orange':
+          themeStyles.innerText = await fetch('./src/themes/orange.css').then(res => res.text());
+          newColor = '#000000';
+          break;
+      }
+    } else {
+      console.error("Cannot find element with id 'theme-stylesheet'");
+    }
+
+    // Traverse all text nodes in the Slate value
+    for (const [node, path] of Editor.nodes(editor, { at: [] })) {
+      // Check if the node is a text node
+      if (Text.isText(node)) {
+        // add a mark with the new text color to each text node
+        Transforms.setNodes(editor, { color: newColor }, { at: path });
+      }
+    }
+  }
+
+  useEffect(() => {
+    window.electron.onThemeChange((event: any, theme: any) => {
+      setTheme(theme); // update theme state when it changes
+    });
+  }, []);
+
+  useEffect(() => {
+    applyTheme(theme);  // apply theme whenever it changes
+  }, [theme]);
+
 
   const renderLeaf = useCallback((props: RenderLeafProps) => {
     let { attributes, children, leaf } = props;
