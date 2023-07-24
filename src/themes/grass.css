@@ -1,0 +1,36 @@
+:root {
+    --behind-paper: #b7dfb8; /* Colour for behind "paper" */
+    --main-display: #dbefdc; /* Colour for behind text */
+    --gutter-main: #3d8b40; /* Colour for gutter */
+    --shadow-main: #bbc4bd; /* Colour for gutter */
+    --toolbar-main: #c8e6ca; /* Colour for toolbar */
+    --toolbar-btn-hover: #a6d1a9; /* Colour for toolbar buttons */
+    --toolbar-btn-clicked: #b2d4b4; /* Colour for toolbar buttons */
+    --text-colour: #000; /* Colour for text */
+}
+  
+body {
+    color: var(--text-colour);
+}
+.edit-container, .preview-container {
+    background: var(--behind-paper);
+}
+.slate-editor {
+    background: var(--main-display);
+}
+.preview-box {
+    background: var(--main-display);
+    box-shadow: 0 0 8px var(--shadow-main);
+}
+.gutter {
+    background-color: var(--gutter-main);
+}
+.toolbar {
+    background-color: var(--toolbar-main);
+}
+.toolbarBtn:hover {
+    background-color: var(--toolbar-btn-hover);
+}
+.toolbarBtn:active {
+    background: var(--toolbar-btn-clicked);
+}

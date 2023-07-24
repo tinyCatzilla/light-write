@@ -9,7 +9,7 @@
 
 <h1 align="center">NOTE: light:write is in active development, and thus <ins>not available at this time.</ins></h1>
 
-<h3 align="center"><ins>Just Text:</ins></h3>
+### Just Text:
 <p>light:write is a minimalist text editor to produce high quality, stylized text with ease.</p>
 
 - Lightweight like Notepad,
@@ -35,8 +35,13 @@ All in a meticulously designed, lightweight package.
 - Native rendering support for LaTeX, code blocks, and HTML.
 
 ## Installation (In development.)
-1. <a rel="noreferrer noopener" href="#">Download here.</a>
-2. Click install.
+1. <a rel="noreferrer noopener" href="#">Download</a>
+2. `cd` into the directory.
+3. Run `yarn install` to install dependencies.
+4. Run `yarn build` to build the app.
+5. Run `yarn dev` to start the app.
+
+<br>
 
 TODO:
 - Codeblocks.

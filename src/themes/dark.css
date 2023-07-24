@@ -1,7 +1,7 @@
 :root {
     --behind-paper: #1f2022; /* Colour for behind "paper" */
     --main-display: #121212; /* Colour for "paper" #121212 */
-    --gutter-main: #2c3645; /* Colour for gutter */
+    --gutter-main: #292a2d; /* Colour for gutter 2c3645 */
     --shadow-main: #12121273; /* Colour for gutter */
     --toolbar-main: #1f2022; /* Colour for toolbar */
     --toolbar-btn-hover: #37394e; /* Colour for toolbar buttons */
@@ -33,4 +33,10 @@ body {
 }
 .toolbarBtn:active {
     background: var(--toolbar-btn-clicked);
+}
+
+select {
+    background-color: var(--toolbar-btn-clicked);
+    color: var(--text-colour);
+    border: 1px solid var(--gutter-main);
 }

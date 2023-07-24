@@ -120,3 +120,8 @@
   transition: all 0.2s ease-in-out;
 }
 
+select {
+  border-radius: 4px;
+  padding: 4px;
+  margin: 4px;
+}

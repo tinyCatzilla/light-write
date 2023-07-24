@@ -310,13 +310,33 @@ const App: React.FC = () => {
           themeStyles.innerText = await fetch('./src/themes/light.css').then(res => res.text());
           newColor = '#000000';
           break;
+        case 'orange':
+          themeStyles.innerText = await fetch('./src/themes/orange.css').then(res => res.text());
+          newColor = '#000000';
+          break;
+        case 'grass':
+          themeStyles.innerText = await fetch('./src/themes/grass.css').then(res => res.text());
+          newColor = '#000000';
+          break;
         case 'dark':
           themeStyles.innerText = await fetch('./src/themes/dark.css').then(res => res.text());
           newColor = '#ffffff';
           break;
-        case 'orange':
-          themeStyles.innerText = await fetch('./src/themes/orange.css').then(res => res.text());
-          newColor = '#000000';
+        case 'deep-blue':
+          themeStyles.innerText = await fetch('./src/themes/deepblue.css').then(res => res.text());
+          newColor = '#ffffff';
+          break;
+        case 'dim':
+          themeStyles.innerText = await fetch('./src/themes/dim.css').then(res => res.text());
+          newColor = '#ffffff';
+          break;
+        case 'deep-purple':
+          themeStyles.innerText = await fetch('./src/themes/deeppurple.css').then(res => res.text());
+          newColor = '#ffffff';
+          break;
+        case 'deep-orange':
+          themeStyles.innerText = await fetch('./src/themes/deeporange.css').then(res => res.text());
+          newColor = '#ffffff';
           break;
       }
     } else {

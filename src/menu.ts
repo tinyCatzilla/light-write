@@ -48,21 +48,35 @@ const template: Electron.MenuItemConstructorOptions[] = [
         submenu: [
             {
                 label: 'Light',
-                click: () => {
-                    BrowserWindow.getFocusedWindow()?.webContents.send('theme-change', 'default');
-                }
+                click: () => { BrowserWindow.getFocusedWindow()?.webContents.send('theme-change', 'default'); }
+            },
+            {
+                label: 'Summer',
+                click: () => { BrowserWindow.getFocusedWindow()?.webContents.send('theme-change', 'orange'); }
+            },
+            {
+                label: 'Grass',
+                click: () => { BrowserWindow.getFocusedWindow()?.webContents.send('theme-change', 'grass'); }
             },
             {
                 label: 'Dark',
-                click: () => {
-                    BrowserWindow.getFocusedWindow()?.webContents.send('theme-change', 'dark');
-                }
+                click: () => { BrowserWindow.getFocusedWindow()?.webContents.send('theme-change', 'dark'); }
             },
             {
-                label: 'Orange',
-                click: () => {
-                    BrowserWindow.getFocusedWindow()?.webContents.send('theme-change', 'orange');
-                }
+                label: 'Dim',
+                click: () => { BrowserWindow.getFocusedWindow()?.webContents.send('theme-change', 'dim'); }
+            },
+            {
+                label: 'Deep Blue',
+                click: () => { BrowserWindow.getFocusedWindow()?.webContents.send('theme-change', 'deep-blue'); }
+            },
+            {
+                label: 'Deep Purple',
+                click: () => { BrowserWindow.getFocusedWindow()?.webContents.send('theme-change', 'deep-purple'); }
+            },
+            {
+                label: 'Deep Orange',
+                click: () => { BrowserWindow.getFocusedWindow()?.webContents.send('theme-change', 'deep-orange'); }
             },
         ]
     }
