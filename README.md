@@ -20,17 +20,24 @@ All in a meticulously designed, lightweight package.
 ## 🦢 My Tenets
 
 ### 🚀 Speed
-- its slow
+- Optimized to use ~25MB memory total.
+- Real-time markdown rendering with no latency.
+- Instantly opens and closes, saving precious picoseconds.
 
 ### 🌠 Efficiency
-- doesnt even work
+- Intuitive hotkeys.
+- Everything accessible in either the editor or top menu.
+- Copy as plaintext or save rendered text as an image with a single button (coming soon)
 
 ### 🎆 Style
-- no styling
+- Modify font, size, color, bold, and underline. 
+- Light, Dark, and Spring themes (more to come).
+- Native rendering support for LaTeX, code blocks, and HTML.
 
 ## Installation (In development.)
 1. <a rel="noreferrer noopener" href="#">Download here.</a>
 2. Click install.
 
 TODO:
-- everything
+- Add support for screenshotting LaTeX.
+- Codeblocks.

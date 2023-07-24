@@ -35,6 +35,12 @@ function createWindow () {
     mainWindow?.webContents.send('theme-change', theme);
   })
 
+  ipcMain.handle('capture-page', async (event, ...args) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    const image = await win?.webContents.capturePage();
+    return image?.toPNG(); // toPNG returns a Buffer
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null
   })

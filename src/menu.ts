@@ -46,7 +46,7 @@ const template: Electron.MenuItemConstructorOptions[] = [
         label: 'Themes',
         submenu: [
             {
-                label: 'Default',
+                label: 'Light',
                 click: () => {
                     BrowserWindow.getFocusedWindow()?.webContents.send('theme-change', 'default');
                 }
@@ -63,16 +63,6 @@ const template: Electron.MenuItemConstructorOptions[] = [
                     BrowserWindow.getFocusedWindow()?.webContents.send('theme-change', 'orange');
                 }
             },
-        ]
-    },
-    
-
-    {
-        role: 'help',
-        submenu: [
-            {
-                label: 'Learn More'
-            }
         ]
     }
 ]

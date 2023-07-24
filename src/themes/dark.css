@@ -1,9 +1,9 @@
 :root {
     --behind-paper: #1f2022; /* Colour for behind "paper" */
-    --main-display: #e9e9e9; /* Colour for "paper" #121212 */
+    --main-display: #121212; /* Colour for "paper" #121212 */
     --gutter-main: #2c3645; /* Colour for gutter */
     --shadow-main: #12121273; /* Colour for gutter */
-    --toolbar-main: #121212; /* Colour for toolbar */
+    --toolbar-main: #1f2022; /* Colour for toolbar */
     --toolbar-btn-hover: #37394e; /* Colour for toolbar buttons */
     --toolbar-btn-clicked: #242532; /* Colour for toolbar buttons */
     --text-colour: #fff; /* Colour for text */

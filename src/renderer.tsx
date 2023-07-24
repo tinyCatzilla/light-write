@@ -1,46 +1,23 @@
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { createEditor, Editor, Text, Descendant, Transforms } from 'slate';
 import { Slate, Editable, withReact, RenderLeafProps, RenderElementProps, useSlate } from 'slate-react';
+import { withHistory, HistoryEditor } from 'slate-history';
 import { latexMathToHtml } from './mathToHTML';
 import Split from 'react-split'
-// import { ipcRenderer } from 'electron';
+// import html2canvas from "html2canvas";
 import './style.css';
 import './themes/light.css';
 
 
 declare global {
-  interface Window { electron: any; }
+  interface Window {
+    electron: any;
+    api: {
+      capturePage: () => Promise<Buffer>;
+    }
+  }
 }
-
-// window.electron.onThemeChange((event: any, theme: any) => {
-//   applyTheme(theme);
-// });
-
-// let textColor = '#000000';
-
-// async function applyTheme(theme: string) {
-//   let themeStyles = document.querySelector<HTMLStyleElement>('#theme-stylesheet');
-//   if(themeStyles){
-//     switch (theme) {
-//       case 'default':
-//         themeStyles.innerText = await fetch('./src/themes/light.css').then(res => res.text());
-//         textColor = '#000000';
-//         break;
-//       case 'dark':
-//         themeStyles.innerText = await fetch('./src/themes/dark.css').then(res => res.text());
-//         textColor = '#ffffff';
-//         break;
-//       case 'orange':
-//         themeStyles.innerText = await fetch('./src/themes/orange.css').then(res => res.text());
-//         textColor = '#000000';
-//         break;
-//     }
-//   } else {
-//     console.error("Cannot find element with id 'theme-stylesheet'");
-//   }
-// }
-
 
 type CustomElement = {
   type: 'paragraph';
@@ -74,6 +51,8 @@ const initialValue: CustomElement[] = [
 const DefaultElement = (props: RenderElementProps) => {
   return <p {...props.attributes}>{props.children}</p>;
 };
+
+
 
 
 const FontFamilyDropdown = () => {
@@ -209,36 +188,67 @@ const InlineCodeButton = () => {
   return <button className="toolbarBtn" onMouseDown={handleClick}><i className="fa-solid fa-code"></i></button>;
 };
 
+
+const UndoButton = () => {
+  const editor = useSlate() as unknown as HistoryEditor;
+
+  const handleClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    editor.undo();
+  };
+
+  return <button className="toolbarBtn" onMouseDown={handleClick}><i className="fa-solid fa-undo"></i></button>;
+};
+
+const RedoButton = () => {
+  const editor = useSlate() as unknown as HistoryEditor;
+
+  const handleClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    editor.redo();
+  };
+
+  return <button className="toolbarBtn" onMouseDown={handleClick}><i className="fa-solid fa-redo"></i></button>;
+};
+
+// const SaveAsImageButton = ({ markdownContainerRef }: { markdownContainerRef: React.RefObject<HTMLDivElement> }) => {
+
+//   const handleClick = async () => {
+//     if(markdownContainerRef.current) {
+//       const canvas = await html2canvas(markdownContainerRef.current);
+//       canvas.toBlob(async (blob: any) => {
+//         if(blob) {
+//           const clipboardItemInput = new ClipboardItem({ 'image/png': blob });
+//           await navigator.clipboard.write([clipboardItemInput]);
+//         }
+//       }, 'image/png');
+//     }
+//   };
+
+//   return (
+//     <div>
+//       <div ref={markdownContainerRef}></div>
+//       <button onClick={handleClick}>Save as Image</button>
+//     </div>
+//   );
+// };
+
 const serializeHTML = (nodes: Descendant[]): string => {
   let html = '';
   for (let node of nodes) {
     if (Text.isText(node)) {
       let span = node.text;
 
-      // // Check if text contains inline LaTeX
-      // if (/\$(.*?)\$/.test(span)) {
-      //   span = span.replace(/\$(.*?)\$/g, (match, latex) => {
-      //     return latexMathToHtml(`$${latex}$`);
-      //   });
-      // }
-
-      // // Check if text contains display LaTeX
-      // if (/\$\$(.*?)\$\$/.test(span)) {
-      //   span = span.replace(/\$\$(.*?)\$\$/g, (match, latex) => {
-      //     return latexMathToHtml(`$${latex}$`);
-      //   });
-      // }
+      // Check if text contains inline LaTeX
+      if (/\$(.*?)\$/.test(span)) {
+        span = span.replace(/\$(.*?)\$/g, (match, latex) => {
+          return latexMathToHtml(`$${latex}$`);
+        });
+      }
 
       // Check if text contains display LaTeX
       if (/\$\$(.*?)\$\$/.test(span)) {
         span = span.replace(/\$\$(.*?)\$\$/g, (match, latex) => {
-          return latexMathToHtml(`$$${latex}$$`);
-        });
-      }
-
-      // Check if text contains inline LaTeX
-      if (/\$(.*?)\$/.test(span)) {
-        span = span.replace(/\$(.*?)\$/g, (match, latex) => {
           return latexMathToHtml(`$${latex}$`);
         });
       }
@@ -273,14 +283,25 @@ const serializeHTML = (nodes: Descendant[]): string => {
 
 
 const App: React.FC = () => {
-  const editor = useMemo(() => withReact(createEditor()), []);
+  const editor = useMemo(() => withReact(withHistory(createEditor())), []);
   const [value, setValue] = useState<Descendant[]>(initialValue);
 
   const renderElement = useCallback((props: RenderElementProps) => {
     return <DefaultElement {...props} />;
   }, []);  
 
-  const [theme, setTheme] = useState('default');  // you can manage your theme state here
+  const handleCaptureClick = async () => {
+    const imageBuffer = await window.api.capturePage();
+    const imageBlob = new Blob([imageBuffer], {type: 'image/png'}); // directly create a Blob from Buffer
+    const clipboardItems = new ClipboardItem({ 'image/png': imageBlob });
+    await navigator.clipboard.write([clipboardItems]);
+  };
+  
+  
+
+  const markdownContainerRef = useRef<HTMLDivElement | null>(null);
+
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'default');
 
   async function applyTheme(theme: string) {
     let themeStyles = document.querySelector<HTMLStyleElement>('#theme-stylesheet');
@@ -312,13 +333,25 @@ const App: React.FC = () => {
         Transforms.setNodes(editor, { color: newColor }, { at: path });
       }
     }
+
+    localStorage.setItem('theme', theme);  // save theme to local storage
   }
+
+  const [hasShownWarning, setHasShownWarning] = useState(false);
 
   useEffect(() => {
     window.electron.onThemeChange((event: any, theme: any) => {
-      setTheme(theme); // update theme state when it changes
+      if (!hasShownWarning) {
+        const userConfirmed = window.confirm('Changing the theme may overwrite your text color. Are you sure you want to proceed?');
+        if (userConfirmed) {
+          setTheme(theme); // update theme state when it changes
+          setHasShownWarning(true); // update the state to not show the warning again
+        }
+      } else {
+        setTheme(theme);
+      }
     });
-  }, []);
+  }, [hasShownWarning]);
 
   useEffect(() => {
     applyTheme(theme);  // apply theme whenever it changes
@@ -402,6 +435,10 @@ const App: React.FC = () => {
               <BoldButton />
               <UnderlineButton />
               <InlineCodeButton />
+              <UndoButton />
+              <RedoButton />
+              <button onClick={handleCaptureClick}>Capture Page</button>
+              {/* <SaveAsImageButton markdownContainerRef={markdownContainerRef} /> */}
             </div>
             <Editable
               className="slate-editor"
@@ -412,8 +449,8 @@ const App: React.FC = () => {
           </Slate>
         </div>
         <div className="preview-container">
-          <div className="preview-box">
-            <h2>Preview</h2>
+          <div className="preview-box" ref={markdownContainerRef}>
+            <h2></h2>
             <div dangerouslySetInnerHTML = {{ __html: serializeHTML(value) }} />
           </div>
         </div>
