@@ -1,2 +1,13 @@
 node_modules/
 dist/
+
+# yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+# comment below if zero-installs
+!.yarn/cache
