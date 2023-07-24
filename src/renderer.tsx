@@ -1,9 +1,15 @@
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { createEditor, Editor, Text, Descendant, Transforms } from 'slate';
-import { Slate, Editable, withReact, RenderLeafProps, RenderElementProps, useSlate } from 'slate-react';
+import { ReactEditor, Slate, Editable, withReact, RenderLeafProps, RenderElementProps, useSlate } from 'slate-react';
 import { withHistory, HistoryEditor } from 'slate-history';
 import { latexMathToHtml } from './mathToHTML';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-python';
+import 'prismjs/themes/prism.css';
+// import 'prismjs/themes/prism-tomorrow.css'; dark theme
+
 import Split from 'react-split'
 // import html2canvas from "html2canvas";
 import './style.css';
@@ -180,14 +186,24 @@ const InlineCodeButton = () => {
 
   const handleClick = (event: React.MouseEvent) => {
     event.preventDefault();
-    const marks = Editor.marks(editor);
-    const isCode = marks ? marks.code === true : false;
-    Editor.addMark(editor, 'code', !isCode);
+    wrapCodeBlock(editor);
   };
 
   return <button className="toolbarBtn" onMouseDown={handleClick}><i className="fa-solid fa-code"></i></button>;
 };
 
+// Wrap selected text in `code`
+function wrapCodeBlock(editor: any) {
+  if (editor.selection) {
+    const selectedText = Editor.string(editor, editor.selection);
+  
+    // Add ``` at start and end of the selection
+    const textWithCodeBlock = `\`\`\`${selectedText}\`\`\``;
+  
+    // Replace selected text with new text wrapped in ```
+    Transforms.insertText(editor, textWithCodeBlock);
+  }
+}
 
 const UndoButton = () => {
   const editor = useSlate() as unknown as HistoryEditor;
@@ -211,28 +227,6 @@ const RedoButton = () => {
   return <button className="toolbarBtn" onMouseDown={handleClick}><i className="fa-solid fa-redo"></i></button>;
 };
 
-// const SaveAsImageButton = ({ markdownContainerRef }: { markdownContainerRef: React.RefObject<HTMLDivElement> }) => {
-
-//   const handleClick = async () => {
-//     if(markdownContainerRef.current) {
-//       const canvas = await html2canvas(markdownContainerRef.current);
-//       canvas.toBlob(async (blob: any) => {
-//         if(blob) {
-//           const clipboardItemInput = new ClipboardItem({ 'image/png': blob });
-//           await navigator.clipboard.write([clipboardItemInput]);
-//         }
-//       }, 'image/png');
-//     }
-//   };
-
-//   return (
-//     <div>
-//       <div ref={markdownContainerRef}></div>
-//       <button onClick={handleClick}>Save as Image</button>
-//     </div>
-//   );
-// };
-
 const serializeHTML = (nodes: Descendant[]): string => {
   let html = '';
   for (let node of nodes) {
@@ -241,28 +235,30 @@ const serializeHTML = (nodes: Descendant[]): string => {
 
       // Check if text contains inline LaTeX
       if (/\$(.*?)\$/.test(span)) {
-        span = span.replace(/\$(.*?)\$/g, (match, latex) => {
+        span = span.replace(/\$(.*?)\$/gs, (match, latex) => {
           return latexMathToHtml(`$${latex}$`);
         });
       }
 
       // Check if text contains display LaTeX
       if (/\$\$(.*?)\$\$/.test(span)) {
-        span = span.replace(/\$\$(.*?)\$\$/g, (match, latex) => {
+        span = span.replace(/\$\$(.*?)\$\$/gs, (match, latex) => {
           return latexMathToHtml(`$${latex}$`);
         });
       }
 
-
+      // Check if text contains code block
+      const codeBlockRegex = /```([^`]*)```/gs;
+      span = span.replace(codeBlockRegex, function(match, code) {
+        // The language is assumed to be JavaScript. Modify as necessary.
+        return `<pre><code class="language-javascript">${Prism.highlight(code, Prism.languages.javascript, 'javascript')}</code></pre>`;
+      });
       
       if (node.bold) {
         span = `<strong>${span}</strong>`;
       }
       if (node.underline) {
         span = `<u>${span}</u>`;
-      }
-      if (node.code) {
-        span = `<code>${span}</code>`;
       }
       if (node.font) {
         span = `<span style="font-family: ${node.font}">${span}</span>`;
@@ -286,6 +282,10 @@ const App: React.FC = () => {
   const editor = useMemo(() => withReact(withHistory(createEditor())), []);
   const [value, setValue] = useState<Descendant[]>(initialValue);
 
+  useEffect(() => {
+    ReactEditor.focus(editor);
+  }, []);
+  
   const renderElement = useCallback((props: RenderElementProps) => {
     return <DefaultElement {...props} />;
   }, []);  
@@ -296,8 +296,6 @@ const App: React.FC = () => {
     const clipboardItems = new ClipboardItem({ 'image/png': imageBlob });
     await navigator.clipboard.write([clipboardItems]);
   };
-  
-  
 
   const markdownContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -335,21 +333,26 @@ const App: React.FC = () => {
     }
 
     localStorage.setItem('theme', theme);  // save theme to local storage
+    
+    // let editorElement = document.getElementById("SlateEditor");
+    // void editorElement?.offsetHeight;
+    // ReactEditor.focus(editor);
   }
 
   const [hasShownWarning, setHasShownWarning] = useState(false);
 
   useEffect(() => {
     window.electron.onThemeChange((event: any, theme: any) => {
-      if (!hasShownWarning) {
-        const userConfirmed = window.confirm('Changing the theme may overwrite your text color. Are you sure you want to proceed?');
-        if (userConfirmed) {
-          setTheme(theme); // update theme state when it changes
-          setHasShownWarning(true); // update the state to not show the warning again
-        }
-      } else {
-        setTheme(theme);
-      }
+      setTheme(theme);
+      // if (!hasShownWarning) {
+      //   const userConfirmed = window.confirm('Changing the theme may overwrite your text color. Are you sure you want to proceed?');
+      //   if (userConfirmed) {
+      //     setTheme(theme); // update theme state when it changes
+      //     setHasShownWarning(true); // update the state to not show the warning again
+      //   }
+      // } else {
+      //   setTheme(theme);
+      // }
     });
   }, [hasShownWarning]);
 
@@ -361,9 +364,9 @@ const App: React.FC = () => {
   const renderLeaf = useCallback((props: RenderLeafProps) => {
     let { attributes, children, leaf } = props;
 
-    if (leaf.code) {
-      children = <code style={{ backgroundColor: '#f8f8f8', fontFamily: 'Courier New' }}>{children}</code>;
-    }    
+    // if (leaf.code) {
+    //   children = <code style={{ backgroundColor: '#f8f8f8', fontFamily: 'Courier New' }}>{children}</code>;
+    // }    
 
     if (leaf.font) {
       children = <span style={{ fontFamily: leaf.font }}>{children}</span>;
@@ -412,9 +415,7 @@ const App: React.FC = () => {
       // Handle 'code' keyboard shortcut
       else if (event.key === '`' && event.ctrlKey) {
         event.preventDefault();
-        const marks = Editor.marks(editor);
-        const isCode = marks ? marks.code === true : false;
-        Editor.addMark(editor, 'code', !isCode);
+        wrapCodeBlock(editor);
       }
     },
     [editor]
@@ -437,10 +438,10 @@ const App: React.FC = () => {
               <InlineCodeButton />
               <UndoButton />
               <RedoButton />
-              <button onClick={handleCaptureClick}>Capture Page</button>
-              {/* <SaveAsImageButton markdownContainerRef={markdownContainerRef} /> */}
+              <button className="toolbarBtn" onClick={handleCaptureClick}><i className="fa-regular fa-image"></i></button>
             </div>
             <Editable
+              id="SlateEditor"
               className="slate-editor"
               renderLeaf={renderLeaf}
               renderElement={renderElement}

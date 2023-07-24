@@ -32,6 +32,7 @@ const template: Electron.MenuItemConstructorOptions[] = [
         label: 'View',
         submenu: [
             { role: 'reload' },
+            { role: 'forceReload' },
             { role: 'toggleDevTools' },
             { type: 'separator' },
             { role: 'resetZoom' },

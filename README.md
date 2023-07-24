@@ -39,5 +39,4 @@ All in a meticulously designed, lightweight package.
 2. Click install.
 
 TODO:
-- Add support for screenshotting LaTeX.
 - Codeblocks.
