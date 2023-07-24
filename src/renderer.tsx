@@ -227,32 +227,88 @@ const RedoButton = () => {
   return <button className="toolbarBtn" onMouseDown={handleClick}><i className="fa-solid fa-redo"></i></button>;
 };
 
+
+
+// current issue: if latex ends on a new line, it is also considered as a start marker
 const serializeHTML = (nodes: Descendant[]): string => {
   let html = '';
-  for (let node of nodes) {
-    if (Text.isText(node)) {
-      let span = node.text;
+  let inBlock = false;
+  let blockMode: string | null = null;
+  let blockText = '';
 
+  const queue: Descendant[] = [...nodes];
+
+  const processBlock = (text: string, mode: string) => {
+    if (mode === 'latex' || mode === 'double-latex') {
+      return latexMathToHtml(text);
+    } else if (mode === 'code') {
+      return `<pre><code class="language-javascript">${Prism.highlight(text, Prism.languages.javascript, 'javascript')}</code></pre>`;
+    } else {
+      return text;
+    }
+  };
+
+  while (queue.length > 0) {
+    const node = queue.shift()!;
+    if ('children' in node) {
+      queue.push(...node.children);
+    } else if (Text.isText(node)) {
+      let span = node.text;
+  
+      if (inBlock) {
+        const endMarker = blockMode === 'latex' ? /\$/ : blockMode === 'double-latex' ? /\$\$/ : /```/;
+        const match = span.match(endMarker);
+  
+        if (match) {
+          blockText += span.slice(0, match.index! + (blockMode === 'latex' ? 1 : blockMode === 'double-latex' ? 2 : 3));
+          html += processBlock(blockText, blockMode!);
+          span = span.slice(match.index!);
+          inBlock = false;
+          blockMode = null;
+          blockText = '';
+        } else {
+          blockText += span;
+          continue;
+        }
+      }
+  
       // Check if text contains inline LaTeX
       if (/\$(.*?)\$/.test(span)) {
         span = span.replace(/\$(.*?)\$/gs, (match, latex) => {
           return latexMathToHtml(`$${latex}$`);
         });
       }
-
+  
       // Check if text contains display LaTeX
       if (/\$\$(.*?)\$\$/.test(span)) {
         span = span.replace(/\$\$(.*?)\$\$/gs, (match, latex) => {
-          return latexMathToHtml(`$${latex}$`);
+          return latexMathToHtml(`$$${latex}$$`);
         });
       }
-
-      // Check if text contains code block
-      const codeBlockRegex = /```([^`]*)```/gs;
-      span = span.replace(codeBlockRegex, function(match, code) {
-        // The language is assumed to be JavaScript. Modify as necessary.
-        return `<pre><code class="language-javascript">${Prism.highlight(code, Prism.languages.javascript, 'javascript')}</code></pre>`;
-      });
+  
+      if (!inBlock) {
+        let startCodeMarker = span.indexOf('```');
+        let startDoubleLatexMarker = span.indexOf('$$');
+        let startSingleLatexMarker = span.indexOf('$');
+      
+        if (startDoubleLatexMarker !== -1) {
+          blockMode = 'double-latex';
+        } else if (startSingleLatexMarker !== -1) {
+          blockMode = 'latex';
+        } else if (startCodeMarker !== -1) {
+          blockMode = 'code';
+        }
+      
+        const markerIndex = Math.min(startDoubleLatexMarker !== -1 ? startDoubleLatexMarker : Infinity,
+          startSingleLatexMarker !== -1 ? startSingleLatexMarker : Infinity,
+          startCodeMarker !== -1 ? startCodeMarker : Infinity);
+      
+        if (markerIndex !== Infinity) {
+          inBlock = true;
+          blockText += span.slice(markerIndex);
+          span = span.slice(0, markerIndex);
+        }
+      }
       
       if (node.bold) {
         span = `<strong>${span}</strong>`;
@@ -270,10 +326,14 @@ const serializeHTML = (nodes: Descendant[]): string => {
         span = `<span style="color: ${node.color}">${span}</span>`;
       }
       html += span;
-    } else if ('children' in node) {
-      html += `<p>${serializeHTML(node.children)}</p>`;
     }
   }
+
+  // Process any remaining block after all nodes have been processed
+  if (inBlock) {
+    html += `<span style="color: red">Unclosed ${blockMode} block</span>`;
+  }
+
   return html;
 };
 
