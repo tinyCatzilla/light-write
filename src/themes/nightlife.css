@@ -1,0 +1,59 @@
+:root {
+    --behind-paper: #0e0505; /* Colour for behind "paper" */
+    --main-display: #141414; /* Colour for "paper" #121212 */
+    --gutter-main: #292a2d; /* Colour for gutter 2c3645 */
+    --shadow-main: #12121273; /* Colour for gutter */
+    --toolbar-main: #0e0505; /* Colour for toolbar */
+    --toolbar-btn-hover: #200b0b; /* Colour for toolbar buttons */
+    --toolbar-btn-clicked: #1f0b0b; /* Colour for toolbar buttons */
+    --text-colour: #fff; /* Colour for text */
+
+    --neon-red: #ff2f2f;
+    --neon-red-faded: #ff1c1c8c;
+}
+  
+body {
+    color: var(--text-colour);
+    /* text-shadow: 0 0 5px #ffffff88; */
+}
+.edit-container, .preview-container {
+    background: var(--behind-paper);
+}
+.slate-editor {
+    background: var(--main-display);
+}
+.preview-box {
+    background: var(--main-display);
+    border: 1px solid var(--neon-red);
+    box-shadow: 0 0 15px var(--neon-red), 0 0 10px var(--neon-red) inset;
+}
+.gutter {
+    background-color: var(--gutter-main);
+    border-right: 1px solid var(--neon-red);
+    border-left: 1px solid var(--neon-red);
+    box-shadow: 0 0 15px var(--neon-red), 0 0 10px var(--neon-red) inset;
+}
+.toolbar {
+    background-color: var(--toolbar-main);
+    box-shadow: 0 0px 100px var(--neon-red) inset;
+}
+.toolbarBtn {
+    border: 0px solid var(--neon-red);
+}
+.toolbarBtn:hover {
+    background-color: var(--toolbar-btn-hover);
+    border: 1px solid var(--neon-red);
+    box-shadow: 0 0 15px var(--neon-red), 0 0 10px var(--neon-red) inset;
+}
+.toolbarBtn:active {
+    background: var(--toolbar-btn-clicked);
+    border: 1px solid var(--neon-red);
+    box-shadow: 0 0 15px var(--neon-red), 0 0 10px var(--neon-red) inset;
+}
+
+select {
+    background-color: var(--toolbar-btn-clicked);
+    color: var(--text-colour);
+    border: 1px solid var(--gutter-main);
+}
+

@@ -37,6 +37,7 @@ type CustomText = {
   size?: string;
   color?: string;
   bold?: boolean;
+  glow?: string;
   underline?: boolean;
 };
 
@@ -137,6 +138,7 @@ const TextColorButton = () => {
 
     if (editor.selection) {
       Editor.addMark(editor, 'color', newColor);
+      // Editor.addMark(editor, 'textShadow', `0 0 0.2em ${newColor}`);
     }
   };
 
@@ -480,6 +482,10 @@ const App: React.FC = () => {
           themeStyles.innerText = await fetch('./src/themes/wine.css').then(res => res.text());
           newColor = '#ffffff';
           break;
+        case 'nightlife':
+          themeStyles.innerText = await fetch('./src/themes/nightlife.css').then(res => res.text());
+          newColor = '#ffffff';
+          break;
       }
     } else {
       console.error("Cannot find element with id 'theme-stylesheet'");
@@ -532,6 +538,10 @@ const App: React.FC = () => {
 
     if (leaf.color) {
       children = <span style={{ color: leaf.color }}>{children}</span>;
+    }
+
+    if (leaf.glow) {
+      children = <span style={{ textShadow: leaf.glow }}>{children}</span>;
     }
 
     if (leaf.bold) {

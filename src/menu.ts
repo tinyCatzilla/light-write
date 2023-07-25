@@ -78,6 +78,10 @@ const template: Electron.MenuItemConstructorOptions[] = [
                 label: 'Wine',
                 click: () => { BrowserWindow.getFocusedWindow()?.webContents.send('theme-change', 'wine'); }
             },
+            {
+                label: 'Nightlife',
+                click: () => { BrowserWindow.getFocusedWindow()?.webContents.send('theme-change', 'nightlife'); }
+            },
         ]
     }
 ]
