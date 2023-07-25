@@ -50,7 +50,7 @@ declare module 'slate' {
 const initialValue: CustomElement[] = [
   {
     type: 'paragraph',
-    children: [{ text: String.raw`I love LaTeX!! $\int_0^1 \Gamma^{(\alpha-1)}(x)$`, font: 'Arial', size: '16px', color: '#000000', bold: false, underline: false}],
+    children: [{ text: String.raw`I love LaTeX!! $\int_0^1 \Gamma^{(\alpha-1)}(x)$`, font: 'Georiga', size: '16px', color: '#000000', bold: false, underline: false}],
   },
 ];
 
@@ -63,7 +63,7 @@ const DefaultElement = (props: RenderElementProps) => {
 
 const FontFamilyDropdown = () => {
   const editor = useSlate();
-  const [font, setFont] = useState('Arial');
+  const [font, setFont] = useState('Georgia');
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newFont = event.target.value;
@@ -227,9 +227,56 @@ const RedoButton = () => {
   return <button className="toolbarBtn" onMouseDown={handleClick}><i className="fa-solid fa-redo"></i></button>;
 };
 
+// const serializeHTML = (nodes: Descendant[]): string => {
+//   let html = '';
+//   for (let node of nodes) {
+//     if (Text.isText(node)) {
+//       let span = node.text;
 
+//       // Check if text contains display LaTeX
+//       if (/\$\$(.*?)\$\$/.test(span)) {
+//         span = span.replace(/\$\$(.*?)\$\$/g, (match, latex) => {
+//           return latexMathToHtml(`$$${latex}$$`);
+//         });
+//       }
 
-// current issue: if latex ends on a new line, it is also considered as a start marker
+//       // Check if text contains inline LaTeX
+//       if (/\$(.*?)\$/.test(span)) {
+//         span = span.replace(/\$(.*?)\$/g, (match, latex) => {
+//           return latexMathToHtml(`$${latex}$`);
+//         });
+//       }
+
+//       // Check if text contains code block
+//       const codeBlockRegex = /```([^`]*)```/gs;
+//       span = span.replace(codeBlockRegex, function(match, code) {
+//         // The language is assumed to be JavaScript. Modify as necessary.
+//         return `<pre><code class="language-javascript">${Prism.highlight(code, Prism.languages.javascript, 'javascript')}</code></pre>`;
+//       });
+      
+//       if (node.bold) {
+//         span = `<strong>${span}</strong>`;
+//       }
+//       if (node.underline) {
+//         span = `<u>${span}</u>`;
+//       }
+//       if (node.font) {
+//         span = `<span style="font-family: ${node.font}">${span}</span>`;
+//       }
+//       if (node.size) {
+//         span = `<span style="font-size: ${node.size}">${span}</span>`;
+//       }
+//       if (node.color) {
+//         span = `<span style="color: ${node.color}">${span}</span>`;
+//       }
+//       html += span;
+//     } else if ('children' in node) {
+//       html += `<p>${serializeHTML(node.children)}</p>`;
+//     }
+//   }
+//   return html;
+// };
+
 const serializeHTML = (nodes: Descendant[]): string => {
   let html = '';
   let inBlock = false;
@@ -247,6 +294,7 @@ const serializeHTML = (nodes: Descendant[]): string => {
       return text;
     }
   };
+  console.log(queue);
 
   while (queue.length > 0) {
     const node = queue.shift()!;
@@ -254,39 +302,64 @@ const serializeHTML = (nodes: Descendant[]): string => {
       queue.push(...node.children);
     } else if (Text.isText(node)) {
       let span = node.text;
-  
+
       if (inBlock) {
-        const endMarker = blockMode === 'latex' ? /\$/ : blockMode === 'double-latex' ? /\$\$/ : /```/;
-        const match = span.match(endMarker);
-  
+        let endMarker;
+        if (blockMode === 'latex') {
+          endMarker = /\$/;
+        } else if (blockMode === 'double-latex') {
+          endMarker = /\$\$/;
+        } else if (blockMode === 'code') {
+          endMarker = /```/;
+        }
+        const match = endMarker ? span.match(endMarker) : null;
         if (match) {
-          blockText += span.slice(0, match.index! + (blockMode === 'latex' ? 1 : blockMode === 'double-latex' ? 2 : 3));
+          const endIndex = match.index! + (blockMode === 'latex' ? 1 : blockMode === 'double-latex' ? 2 : blockMode === 'code' ? 3 : 0);
+          blockText += span.slice(0, endIndex - (blockMode === 'code' ? 3 : 0));
           html += processBlock(blockText, blockMode!);
-          span = span.slice(match.index!);
+          span = span.slice(endIndex);
           inBlock = false;
           blockMode = null;
           blockText = '';
         } else {
           blockText += span;
+          if (blockMode === 'code') {
+            blockText += '\n';
+          }
           continue;
         }
       }
   
-      // Check if text contains inline LaTeX
-      if (/\$(.*?)\$/.test(span)) {
-        span = span.replace(/\$(.*?)\$/gs, (match, latex) => {
-          return latexMathToHtml(`$${latex}$`);
-        });
-      }
-  
-      // Check if text contains display LaTeX
-      if (/\$\$(.*?)\$\$/.test(span)) {
-        span = span.replace(/\$\$(.*?)\$\$/gs, (match, latex) => {
-          return latexMathToHtml(`$$${latex}$$`);
-        });
-      }
-  
       if (!inBlock) {
+        // Check if text contains display LaTeX
+        if (/\$\$(.*?)\$\$/.test(span)) {
+          span = span.replace(/\$\$(.*?)\$\$/g, (match, latex) => {
+            return latexMathToHtml(`$$${latex}$$`);
+          });
+        }
+
+        // Check if text contains inline LaTeX
+        else if (/\$(.*?)\$/.test(span)) {
+          span = span.replace(/\$(.*?)\$/g, (match, latex) => {
+            // If the latex content is empty, return the original match
+            if (latex.trim() === '') {
+              return match;
+            }
+
+            // Otherwise, convert the latex content to HTML
+            return latexMathToHtml(`$${latex}$`);
+          });
+        }
+
+        // Check if text contains code block
+        else if (/```([^`]*)```/gs.test(span)) {
+        span = span.replace(/```([^`]*)```/g, function(match, code) {
+          // The language is assumed to be JavaScript. Modify as necessary.
+          return `<pre><code class="language-javascript">${Prism.highlight(code, Prism.languages.javascript, 'javascript')}</code></pre>`;
+        });
+      }
+
+
         let startCodeMarker = span.indexOf('```');
         let startDoubleLatexMarker = span.indexOf('$$');
         let startSingleLatexMarker = span.indexOf('$');
@@ -299,14 +372,23 @@ const serializeHTML = (nodes: Descendant[]): string => {
           blockMode = 'code';
         }
       
-        const markerIndex = Math.min(startDoubleLatexMarker !== -1 ? startDoubleLatexMarker : Infinity,
+        let markerIndex = Math.min(
+          startCodeMarker !== -1 ? startCodeMarker : Infinity,
+          startDoubleLatexMarker !== -1 ? startDoubleLatexMarker : Infinity,
           startSingleLatexMarker !== -1 ? startSingleLatexMarker : Infinity,
-          startCodeMarker !== -1 ? startCodeMarker : Infinity);
-      
+        );
+  
         if (markerIndex !== Infinity) {
           inBlock = true;
-          blockText += span.slice(markerIndex);
+          blockText += span.slice(markerIndex + (blockMode === 'code' ? 3 : 0));
+          if (blockMode === 'code') {
+            blockText += '\n';
+          }
           span = span.slice(0, markerIndex);
+        }
+        else {
+          // Only add the line break when the text is not part of a block
+          span += '<br>';
         }
       }
       
@@ -394,8 +476,8 @@ const App: React.FC = () => {
           themeStyles.innerText = await fetch('./src/themes/deeppurple.css').then(res => res.text());
           newColor = '#ffffff';
           break;
-        case 'deep-orange':
-          themeStyles.innerText = await fetch('./src/themes/deeporange.css').then(res => res.text());
+        case 'wine':
+          themeStyles.innerText = await fetch('./src/themes/wine.css').then(res => res.text());
           newColor = '#ffffff';
           break;
       }
@@ -443,10 +525,6 @@ const App: React.FC = () => {
 
   const renderLeaf = useCallback((props: RenderLeafProps) => {
     let { attributes, children, leaf } = props;
-
-    // if (leaf.code) {
-    //   children = <code style={{ backgroundColor: '#f8f8f8', fontFamily: 'Courier New' }}>{children}</code>;
-    // }    
 
     if (leaf.font) {
       children = <span style={{ fontFamily: leaf.font }}>{children}</span>;
