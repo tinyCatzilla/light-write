@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
-import { createEditor, Editor, Text, Descendant, Transforms } from 'slate';
+import { createEditor, Editor, Text, Descendant, Transforms, Node } from 'slate';
 import { ReactEditor, Slate, Editable, withReact, RenderLeafProps, RenderElementProps, useSlate } from 'slate-react';
 import { withHistory, HistoryEditor } from 'slate-history';
 import { latexMathToHtml } from './mathToHTML';
@@ -299,6 +299,7 @@ const serializeHTML = (nodes: Descendant[]): string => {
   let inBlock = false;
   let blockMode: string | null = null;
   let blockText = '';
+  let isLastChild = false;
 
   const queue: Descendant[] = [...nodes];
 
@@ -311,123 +312,129 @@ const serializeHTML = (nodes: Descendant[]): string => {
       return text;
     }
   };
-  console.log(queue);
 
   while (queue.length > 0) {
-    const node = queue.shift()!;
-    if ('children' in node) {
-      queue.push(...node.children);
-    } else if (Text.isText(node)) {
-      let span = node.text;
-
-      if (inBlock) {
-        let endMarker;
-        if (blockMode === 'latex') {
-          endMarker = /\$/;
-        } else if (blockMode === 'double-latex') {
-          endMarker = /\$\$/;
-        } else if (blockMode === 'code') {
-          endMarker = /```/;
-        }
-        const match = endMarker ? span.match(endMarker) : null;
-        if (match) {
-          const endIndex = match.index! + (blockMode === 'latex' ? 1 : blockMode === 'double-latex' ? 2 : blockMode === 'code' ? 3 : 0);
-          blockText += span.slice(0, endIndex - (blockMode === 'code' ? 3 : 0));
-          html += processBlock(blockText, blockMode!);
-          span = span.slice(endIndex);
-          inBlock = false;
-          blockMode = null;
-          blockText = '';
-        } else {
-          blockText += span;
-          if (blockMode === 'code') {
-            blockText += '\n';
-          }
-          continue;
-        }
+    const parentnode = queue.shift()!;
+    if ('children' in parentnode) {
+      if (parentnode.type != 'paragraph'){
+        queue.push(...parentnode.children);
+        continue;
       }
-  
-      if (!inBlock) {
-        // Check if text contains display LaTeX
-        if (/\$\$(.*?)\$\$/.test(span)) {
-          span = span.replace(/\$\$(.*?)\$\$/g, (match, latex) => {
-            return latexMathToHtml(`$$${latex}$$`);
-          });
-        }
+      for (let i = 0; i < parentnode.children.length; i++) {
+        const node = parentnode.children[i];
+        isLastChild = i === parentnode.children.length - 1;
 
-        // Check if text contains inline LaTeX
-        else if (/\$(.*?)\$/.test(span)) {
-          span = span.replace(/\$(.*?)\$/g, (match, latex) => {
-            // If the latex content is empty, return the original match
-            if (latex.trim() === '') {
-              return match;
+        if (Text.isText(node)){
+          let span = node.text;
+
+          if (inBlock) {
+            let endMarker;
+            if (blockMode === 'latex') {
+              endMarker = /\$/;
+            } else if (blockMode === 'double-latex') {
+              endMarker = /\$\$/;
+            } else if (blockMode === 'code') {
+              endMarker = /```/;
+            }
+            const match = endMarker ? span.match(endMarker) : null;
+            if (match) {
+              const endIndex = match.index! + (blockMode === 'latex' ? 1 : blockMode === 'double-latex' ? 2 : blockMode === 'code' ? 3 : 0);
+              blockText += span.slice(0, endIndex - (blockMode === 'code' ? 3 : 0));
+              html += processBlock(blockText, blockMode!);
+              span = span.slice(endIndex);
+              inBlock = false;
+              blockMode = null;
+              blockText = '';
+            } else {
+              blockText += span;
+              if (blockMode === 'code') {
+                blockText += '\n';
+              }
+              continue;
+            }
+          }
+      
+          if (!inBlock) {
+            // Check if text contains display LaTeX
+            if (/\$\$(.*?)\$\$/.test(span)) {
+              span = span.replace(/\$\$(.*?)\$\$/g, (match, latex) => {
+                return latexMathToHtml(`$$${latex}$$`);
+              });
             }
 
-            // Otherwise, convert the latex content to HTML
-            return latexMathToHtml(`$${latex}$`);
-          });
-        }
+            // Check if text contains inline LaTeX
+            else if (/\$(.*?)\$/.test(span)) {
+              span = span.replace(/\$(.*?)\$/g, (match, latex) => {
+                // If the latex content is empty, return the original match
+                if (latex.trim() === '') {
+                  return match;
+                }
 
-        // Check if text contains code block
-        else if (/```([^`]*)```/gs.test(span)) {
-        span = span.replace(/```([^`]*)```/g, function(match, code) {
-          // The language is assumed to be JavaScript. Modify as necessary.
-          return `<pre><code class="language-javascript">${Prism.highlight(code, Prism.languages.javascript, 'javascript')}</code></pre>`;
-        });
-      }
+                // Otherwise, convert the latex content to HTML
+                return latexMathToHtml(`$${latex}$`);
+              });
+            }
 
-
-        let startCodeMarker = span.indexOf('```');
-        let startDoubleLatexMarker = span.indexOf('$$');
-        let startSingleLatexMarker = span.indexOf('$');
-      
-        if (startDoubleLatexMarker !== -1) {
-          blockMode = 'double-latex';
-        } else if (startSingleLatexMarker !== -1) {
-          blockMode = 'latex';
-        } else if (startCodeMarker !== -1) {
-          blockMode = 'code';
-        }
-      
-        let markerIndex = Math.min(
-          startCodeMarker !== -1 ? startCodeMarker : Infinity,
-          startDoubleLatexMarker !== -1 ? startDoubleLatexMarker : Infinity,
-          startSingleLatexMarker !== -1 ? startSingleLatexMarker : Infinity,
-        );
-  
-        if (markerIndex !== Infinity) {
-          inBlock = true;
-          blockText += span.slice(markerIndex + (blockMode === 'code' ? 3 : 0));
-          if (blockMode === 'code') {
-            blockText += '\n';
+            // Check if text contains code block
+            else if (/```([^`]*)```/gs.test(span)) {
+            span = span.replace(/```([^`]*)```/g, function(match, code) {
+              // The language is assumed to be JavaScript. Modify as necessary.
+              return `<pre><code class="language-javascript">${Prism.highlight(code, Prism.languages.javascript, 'javascript')}</code></pre>`;
+            });
           }
-          span = span.slice(0, markerIndex);
-        }
-        else {
-          // Only add the line break when the text is not part of a block
-          span += '<br>';
-        }
-      }
+
+
+            let startCodeMarker = span.indexOf('```');
+            let startDoubleLatexMarker = span.indexOf('$$');
+            let startSingleLatexMarker = span.indexOf('$');
+          
+            if (startDoubleLatexMarker !== -1) {
+              blockMode = 'double-latex';
+            } else if (startSingleLatexMarker !== -1) {
+              blockMode = 'latex';
+            } else if (startCodeMarker !== -1) {
+              blockMode = 'code';
+            }
+          
+            let markerIndex = Math.min(
+              startCodeMarker !== -1 ? startCodeMarker : Infinity,
+              startDoubleLatexMarker !== -1 ? startDoubleLatexMarker : Infinity,
+              startSingleLatexMarker !== -1 ? startSingleLatexMarker : Infinity,
+            );
       
-      if (node.bold) {
-        span = `<strong>${span}</strong>`;
+            if (markerIndex !== Infinity) {
+              inBlock = true;
+              blockText += span.slice(markerIndex + (blockMode === 'code' ? 3 : 0));
+              if (blockMode === 'code') {
+                blockText += '\n';
+              }
+              span = span.slice(0, markerIndex);
+            } else if (isLastChild) {
+              span += '<br>';
+            }
+          }
+          
+          if (node.bold) {
+            span = `<strong>${span}</strong>`;
+          }
+          if (node.italics) {
+            span = `<em>${span}</em>`;
+          }
+          if (node.underline) {
+            span = `<u>${span}</u>`;
+          }
+          if (node.font) {
+            span = `<span style="font-family: ${node.font}">${span}</span>`;
+          }
+          if (node.size) {
+            span = `<span style="font-size: ${node.size}">${span}</span>`;
+          }
+          if (node.color) {
+            span = `<span style="color: ${node.color}">${span}</span>`;
+          }
+          html += span;
+        }
       }
-      if (node.italics) {
-        span = `<em>${span}</em>`;
-      }
-      if (node.underline) {
-        span = `<u>${span}</u>`;
-      }
-      if (node.font) {
-        span = `<span style="font-family: ${node.font}">${span}</span>`;
-      }
-      if (node.size) {
-        span = `<span style="font-size: ${node.size}">${span}</span>`;
-      }
-      if (node.color) {
-        span = `<span style="color: ${node.color}">${span}</span>`;
-      }
-      html += span;
     }
   }
 
