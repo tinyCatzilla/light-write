@@ -1,0 +1,52 @@
+:root {
+    --behind-paper: #d89bfc; /* Colour for behind "paper" */
+    --main-display1: #f499c2; /* Colour for behind text */
+    --main-display2:#54c3bc; /* Colour for behind text */
+    --gutter-main: #3f14b8; /* Colour for gutter */
+    --shadow-main: #2c2123; /* Colour for gutter */
+    --toolbar-main: #4bcef7; /* Colour for toolbar */
+    --toolbar-btn-hover: #34f8d7; /* Colour for toolbar buttons */
+    --toolbar-btn-clicked: #54c3bc; /* Colour for toolbar buttons */
+    --text-colour: #fff; /* Colour for text */
+
+    --miami-pink: #f499c2;
+    --miami-blue: #54c3bc;
+    
+
+    --miami-pink-dark: #c03e78;
+}
+  
+body {
+    color: var(--text-colour);
+}
+.preview-container {
+    background: var(--behind-paper);
+}
+.edit-container{
+    background: var(--main-display2);
+}
+.slate-editor {
+    background: var(--main-display2);
+}
+.preview-box {
+    background: var(--main-display1);
+    box-shadow: 0 0 8px var(--shadow-main);
+}
+.gutter {
+    background-color: var(--gutter-main);
+}
+.toolbar {
+    background-color: var(--toolbar-main);
+}
+.toolbarBtn:hover {
+    background-color: var(--toolbar-btn-hover);
+}
+.toolbarBtn:active {
+    background: var(--toolbar-btn-clicked);
+}
+
+select {
+    background-color: var(--toolbar-btn-clicked);
+    color: var(--text-colour);
+    border: 1px solid var(--gutter-main);
+}

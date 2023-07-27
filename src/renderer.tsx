@@ -37,8 +37,9 @@ type CustomText = {
   size?: string;
   color?: string;
   bold?: boolean;
-  glow?: string;
+  italics?: boolean;
   underline?: boolean;
+  glow?: string;
 };
 
 declare module 'slate' {
@@ -51,7 +52,7 @@ declare module 'slate' {
 const initialValue: CustomElement[] = [
   {
     type: 'paragraph',
-    children: [{ text: String.raw`I love LaTeX!! $\int_0^1 \Gamma^{(\alpha-1)}(x)$`, font: 'Georiga', size: '16px', color: '#000000', bold: false, underline: false}],
+    children: [{ text: String.raw`I love LaTeX!! $\int_0^1 \Gamma^{(\alpha-1)}(x)$`, font: 'Georiga', size: '16px', color: '#000000', bold: false, italics: false, underline: false}],
   },
 ];
 
@@ -166,6 +167,20 @@ const BoldButton = () => {
   };
 
   return <button className="toolbarBtn" onMouseDown={handleClick}><i className="fa-solid fa-bold"></i>
+  </button>;
+};
+
+const ItalicsButton = () => {
+  const editor = useSlate();
+
+  const handleClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    const marks = Editor.marks(editor);
+    const isItalics = marks ? marks.italics === true : false;
+    Editor.addMark(editor, 'italics', !isItalics);
+  };
+
+  return <button className="toolbarBtn" onMouseDown={handleClick}><i className="fa-solid fa-italic"></i>
   </button>;
 };
 
@@ -397,6 +412,9 @@ const serializeHTML = (nodes: Descendant[]): string => {
       if (node.bold) {
         span = `<strong>${span}</strong>`;
       }
+      if (node.italics) {
+        span = `<em>${span}</em>`;
+      }
       if (node.underline) {
         span = `<u>${span}</u>`;
       }
@@ -548,6 +566,10 @@ const App: React.FC = () => {
       children = <strong>{children}</strong>;
     }
 
+    if (leaf.italics) {
+      children = <em>{children}</em>;
+    }
+
     if (leaf.underline) {
       children = <u>{children}</u>;
     }
@@ -602,6 +624,7 @@ const App: React.FC = () => {
               <FontSizeDropdown/>
               <TextColorButton />
               <BoldButton />
+              <ItalicsButton />
               <UnderlineButton />
               <InlineCodeButton />
               <UndoButton />
