@@ -56,3 +56,4 @@ TODO:
 - Dynamic toolbar resizing
 - Hide editor/markdown
 - Pages
+- Dropdown UI

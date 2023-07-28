@@ -101,13 +101,12 @@
 .toolbar > * {
   margin: 5px;
   display: flex;
-  align-items: center;
 }
 
 .toolbar {
   padding: 0 0 10px 10px; /* directions: top/bottom left/right */
   flex-wrap: wrap;
-  height: 60px;
+  min-height: 60px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
