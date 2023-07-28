@@ -48,4 +48,11 @@ All in a meticulously designed, lightweight package.
 <br>
 
 TODO:
-- Codeblocks.
+- Codeblocks
+- Ctrl+Z doesn't work with color
+- Ctrl+Z only works when focused
+- Neon theme
+- Nested blocks
+- Dynamic toolbar resizing
+- Hide editor/markdown
+- Pages

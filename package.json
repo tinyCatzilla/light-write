@@ -40,6 +40,7 @@
     "react-dom": "^18.2.0",
     "react-latex": "^2.0.0",
     "react-markdown": "^8.0.7",
+    "react-select": "^5.7.4",
     "react-split": "^2.0.14",
     "sharp": "^0.32.4",
     "slate": "^0.94.1",

@@ -4,6 +4,7 @@ import { createEditor, Editor, Text, Descendant, Transforms, Node } from 'slate'
 import { ReactEditor, Slate, Editable, withReact, RenderLeafProps, RenderElementProps, useSlate } from 'slate-react';
 import { withHistory, HistoryEditor } from 'slate-history';
 import { latexMathToHtml } from './mathToHTML';
+import Select from 'react-select';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-python';
@@ -60,19 +61,22 @@ const DefaultElement = (props: RenderElementProps) => {
   return <p {...props.attributes}>{props.children}</p>;
 };
 
-
-
+const fontOptions = [
+  { value: 'Arial', label: 'Arial' },
+  { value: 'Verdana', label: 'Verdana' },
+  { value: 'Courier New', label: 'Courier New' },
+  { value: 'Georgia', label: 'Georgia' },
+  { value: 'Times New Roman', label: 'Times New Roman' },
+];
 
 const FontFamilyDropdown = () => {
   const editor = useSlate();
-  const [font, setFont] = useState('Georgia');
+  const [font, setFont] = useState(fontOptions[3]);
 
-  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const newFont = event.target.value;
-    setFont(newFont);
-
+  const handleChange = (selectedOption: any) => {
+    setFont(selectedOption);
     if (editor.selection) {
-      Editor.addMark(editor, 'font', newFont);
+      Editor.addMark(editor, 'font', selectedOption.value);
     }
   };
 
@@ -80,32 +84,38 @@ const FontFamilyDropdown = () => {
     if (editor.selection) {
       const marks = Editor.marks(editor);
       if (marks && marks.font) {
-        setFont(marks.font);
+        setFont(fontOptions.find((option) => option.value === marks.font) || fontOptions[3]);
       }
     }
   }, [editor.selection]);
 
   return (
-    <select value={font} onChange={handleChange}>
-      <option value="Arial">Arial</option>
-      <option value="Verdana">Verdana</option>
-      <option value="Courier New">Courier New</option>
-      <option value="Georgia">Georgia</option>
-      <option value="Times New Roman">Times New Roman</option>
-    </select>
+    <Select 
+      options={fontOptions} 
+      value={font} 
+      onChange={handleChange} 
+      isSearchable={false} 
+      hideSelectedOptions={false}
+    />
   );
 };
 
+const sizeOptions = [
+  { value: '12px', label: '12' },
+  { value: '16px', label: '16' },
+  { value: '20px', label: '20' },
+  { value: '24px', label: '24' },
+  { value: '28px', label: '28' },
+];
+
 const FontSizeDropdown = () => {
   const editor = useSlate();
-  const [size, setSize] = useState('16px');
+  const [size, setSize] = useState(sizeOptions[1]);
 
-  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const newSize = event.target.value;
-    setSize(newSize);
-
+  const handleChange = (selectedOption: any) => {
+    setSize(selectedOption);
     if (editor.selection) {
-      Editor.addMark(editor, 'size', newSize);
+      Editor.addMark(editor, 'size', selectedOption.value);
     }
   };
 
@@ -113,22 +123,21 @@ const FontSizeDropdown = () => {
     if (editor.selection) {
       const marks = Editor.marks(editor);
       if (marks && marks.size) {
-        setSize(marks.size);
+        setSize(sizeOptions.find((option) => option.value === marks.size) || sizeOptions[1]);
       }
     }
   }, [editor.selection]);
 
   return (
-    <select value={size} onChange={handleChange}>
-      <option value="12px">12</option>
-      <option value="16px">16</option>
-      <option value="20px">20</option>
-      <option value="24px">24</option>
-      <option value="28px">28</option>
-    </select>
+    <Select 
+      options={sizeOptions} 
+      value={size} 
+      onChange={handleChange} 
+      isSearchable={false} 
+      hideSelectedOptions={false}
+    />
   );
 };
-
 const TextColorButton = () => {
   const editor = useSlate();
   const [color, setColor] = useState('#000000');
