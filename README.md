@@ -46,13 +46,3 @@ All in a meticulously designed, lightweight package.
 5. Run `yarn dev` to start the app.
 
 <br>
-
-TODO:
-- Codeblocks
-- Ctrl+Z doesn't work with color
-- Ctrl+Z only works when focused
-- Neon theme
-- Nested blocks
-- Hide editor/markdown
-- Pages
-- Dropdown UI
