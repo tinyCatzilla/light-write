@@ -53,7 +53,6 @@ TODO:
 - Ctrl+Z only works when focused
 - Neon theme
 - Nested blocks
-- Dynamic toolbar resizing
 - Hide editor/markdown
 - Pages
 - Dropdown UI
