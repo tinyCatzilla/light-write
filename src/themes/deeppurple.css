@@ -35,11 +35,8 @@ body {
     background: var(--toolbar-btn-clicked);
 }
 
-select {
+select, .test2 {
     background-color: var(--toolbar-btn-clicked);
     color: var(--text-colour);
     border: 1px solid var(--gutter-main);
-    border-radius: 4px;
-    padding: 4px;
-    margin: 4px;
 }

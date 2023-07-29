@@ -135,6 +135,8 @@ const FontSizeDropdown = () => {
       onChange={handleChange} 
       isSearchable={false} 
       hideSelectedOptions={false}
+      // style
+      className='test2'
     />
   );
 };
