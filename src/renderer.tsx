@@ -22,6 +22,7 @@ declare global {
     electron: any;
     api: {
       capturePage: () => Promise<Buffer>;
+      captureRect: (rect: { x: number; y: number; width: number; height: number }) => Promise<Buffer>;
     }
   }
 }
@@ -89,6 +90,21 @@ const FontFamilyDropdown = () => {
     }
   }, [editor.selection]);
 
+  const customStyles = {
+    option: (provided: any, state: any) => ({
+      ...provided,
+      color: 'black'
+    }),
+    control: (provided: any, state: any) => ({
+      ...provided,
+      color: 'black'
+    }),
+    singleValue: (provided: any, state: any) => ({
+      ...provided,
+      color: 'black'
+    })
+  }
+
   return (
     <Select 
       options={fontOptions} 
@@ -96,6 +112,9 @@ const FontFamilyDropdown = () => {
       onChange={handleChange} 
       isSearchable={false} 
       hideSelectedOptions={false}
+      // style
+      className='fontFamilyDropdown'
+      styles={customStyles}
     />
   );
 };
@@ -128,6 +147,21 @@ const FontSizeDropdown = () => {
     }
   }, [editor.selection]);
 
+  const customStyles = {
+    option: (provided: any, state: any) => ({
+      ...provided,
+      color: 'black'
+    }),
+    control: (provided: any, state: any) => ({
+      ...provided,
+      color: 'black'
+    }),
+    singleValue: (provided: any, state: any) => ({
+      ...provided,
+      color: 'black'
+    })
+  }
+
   return (
     <Select 
       options={sizeOptions} 
@@ -136,7 +170,8 @@ const FontSizeDropdown = () => {
       isSearchable={false} 
       hideSelectedOptions={false}
       // style
-      className='test2'
+      className='textSizeDropdown'
+      styles={customStyles}
     />
   );
 };
@@ -254,56 +289,6 @@ const RedoButton = () => {
 
   return <button className="toolbarBtn" onMouseDown={handleClick}><i className="fa-solid fa-redo"></i></button>;
 };
-
-// const serializeHTML = (nodes: Descendant[]): string => {
-//   let html = '';
-//   for (let node of nodes) {
-//     if (Text.isText(node)) {
-//       let span = node.text;
-
-//       // Check if text contains display LaTeX
-//       if (/\$\$(.*?)\$\$/.test(span)) {
-//         span = span.replace(/\$\$(.*?)\$\$/g, (match, latex) => {
-//           return latexMathToHtml(`$$${latex}$$`);
-//         });
-//       }
-
-//       // Check if text contains inline LaTeX
-//       if (/\$(.*?)\$/.test(span)) {
-//         span = span.replace(/\$(.*?)\$/g, (match, latex) => {
-//           return latexMathToHtml(`$${latex}$`);
-//         });
-//       }
-
-//       // Check if text contains code block
-//       const codeBlockRegex = /```([^`]*)```/gs;
-//       span = span.replace(codeBlockRegex, function(match, code) {
-//         // The language is assumed to be JavaScript. Modify as necessary.
-//         return `<pre><code class="language-javascript">${Prism.highlight(code, Prism.languages.javascript, 'javascript')}</code></pre>`;
-//       });
-      
-//       if (node.bold) {
-//         span = `<strong>${span}</strong>`;
-//       }
-//       if (node.underline) {
-//         span = `<u>${span}</u>`;
-//       }
-//       if (node.font) {
-//         span = `<span style="font-family: ${node.font}">${span}</span>`;
-//       }
-//       if (node.size) {
-//         span = `<span style="font-size: ${node.size}">${span}</span>`;
-//       }
-//       if (node.color) {
-//         span = `<span style="color: ${node.color}">${span}</span>`;
-//       }
-//       html += span;
-//     } else if ('children' in node) {
-//       html += `<p>${serializeHTML(node.children)}</p>`;
-//     }
-//   }
-//   return html;
-// };
 
 const serializeHTML = (nodes: Descendant[]): string => {
   let html = '';
@@ -471,11 +456,28 @@ const App: React.FC = () => {
   }, []);  
 
   const handleCaptureClick = async () => {
-    const imageBuffer = await window.api.capturePage();
-    const imageBlob = new Blob([imageBuffer], {type: 'image/png'}); // directly create a Blob from Buffer
-    const clipboardItems = new ClipboardItem({ 'image/png': imageBlob });
-    await navigator.clipboard.write([clipboardItems]);
+    // Find the div and its bounding rectangle
+    const div = document.querySelector('.preview-container');
+    if (div) {
+      const rect = div.getBoundingClientRect();
+      
+      // Pass the coordinates to the main process and capture the image
+      const imageBuffer = await window.api.captureRect({
+        x: Math.round(rect.x),
+        y: Math.round(rect.y),
+        width: Math.round(rect.width),
+        height: Math.round(rect.height)
+      });
+  
+      // Create a Blob from the Buffer
+      const imageBlob = new Blob([imageBuffer], {type: 'image/png'});
+      const clipboardItems = new ClipboardItem({ 'image/png': imageBlob });
+  
+      // Write the image to the clipboard
+      await navigator.clipboard.write([clipboardItems]);
+    }
   };
+
 
   const markdownContainerRef = useRef<HTMLDivElement | null>(null);
 

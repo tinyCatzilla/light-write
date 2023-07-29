@@ -35,9 +35,14 @@ function createWindow () {
     mainWindow?.webContents.send('theme-change', theme);
   })
 
-  ipcMain.handle('capture-page', async (event, ...args) => {
+  ipcMain.handle('capture-rect', async (event, rect) => {
     const win = BrowserWindow.fromWebContents(event.sender);
-    const image = await win?.webContents.capturePage();
+    const image = await win?.webContents.capturePage({
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height
+    });
     return image?.toPNG(); // toPNG returns a Buffer
   });
 

@@ -8,6 +8,8 @@ contextBridge.exposeInMainWorld('electron', {
 
 contextBridge.exposeInMainWorld(
   "api", {
-    capturePage: () => ipcRenderer.invoke('capture-page')
+    captureRect: async (rect: any) => {
+      return await ipcRenderer.invoke('capture-rect', rect);
+    },
   }
-)
+);
