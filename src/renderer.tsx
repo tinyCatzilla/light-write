@@ -113,7 +113,7 @@ const FontFamilyDropdown = () => {
       isSearchable={false} 
       hideSelectedOptions={false}
       // style
-      className="toolbarBtn"
+      className="toolbarDropdown"
       styles={customStyles}
     />
   );
@@ -170,7 +170,7 @@ const FontSizeDropdown = () => {
       isSearchable={false} 
       hideSelectedOptions={false}
       // style
-      className="toolbarBtn"
+      className="toolbarDropdown"
       styles={customStyles}
     />
   );
@@ -634,6 +634,7 @@ const App: React.FC = () => {
       <Split 
         className="split"
         minSize={200}
+        sizes = {[60, 40]}
       >
         <div className="edit-container">
           <Slate editor={editor} initialValue={value} onChange={setValue}>

@@ -108,6 +108,9 @@ body {
   transition: all 0.2s ease-in-out;
 }
 
+.toolbarDropdown {
+}
+
 .toolbar {
   padding: 0 0 10px 10px; 
   flex-wrap: wrap;
