@@ -113,7 +113,7 @@ const FontFamilyDropdown = () => {
       isSearchable={false} 
       hideSelectedOptions={false}
       // style
-      className='fontFamilyDropdown'
+      className="toolbarBtn"
       styles={customStyles}
     />
   );
@@ -170,7 +170,7 @@ const FontSizeDropdown = () => {
       isSearchable={false} 
       hideSelectedOptions={false}
       // style
-      className='textSizeDropdown'
+      className="toolbarBtn"
       styles={customStyles}
     />
   );
@@ -288,6 +288,29 @@ const RedoButton = () => {
   };
 
   return <button className="toolbarBtn" onMouseDown={handleClick}><i className="fa-solid fa-redo"></i></button>;
+};
+
+const handleCaptureClick = async () => {
+  // Find the div and its bounding rectangle
+  const div = document.querySelector('.preview-container');
+  if (div) {
+    const rect = div.getBoundingClientRect();
+    
+    // Pass the coordinates to the main process and capture the image
+    const imageBuffer = await window.api.captureRect({
+      x: Math.round(rect.x),
+      y: Math.round(rect.y),
+      width: Math.round(rect.width),
+      height: Math.round(rect.height)
+    });
+
+    // Create a Blob from the Buffer
+    const imageBlob = new Blob([imageBuffer], {type: 'image/png'});
+    const clipboardItems = new ClipboardItem({ 'image/png': imageBlob });
+
+    // Write the image to the clipboard
+    await navigator.clipboard.write([clipboardItems]);
+  }
 };
 
 const serializeHTML = (nodes: Descendant[]): string => {
@@ -442,7 +465,6 @@ const serializeHTML = (nodes: Descendant[]): string => {
   return html;
 };
 
-
 const App: React.FC = () => {
   const editor = useMemo(() => withReact(withHistory(createEditor())), []);
   const [value, setValue] = useState<Descendant[]>(initialValue);
@@ -454,30 +476,6 @@ const App: React.FC = () => {
   const renderElement = useCallback((props: RenderElementProps) => {
     return <DefaultElement {...props} />;
   }, []);  
-
-  const handleCaptureClick = async () => {
-    // Find the div and its bounding rectangle
-    const div = document.querySelector('.preview-container');
-    if (div) {
-      const rect = div.getBoundingClientRect();
-      
-      // Pass the coordinates to the main process and capture the image
-      const imageBuffer = await window.api.captureRect({
-        x: Math.round(rect.x),
-        y: Math.round(rect.y),
-        width: Math.round(rect.width),
-        height: Math.round(rect.height)
-      });
-  
-      // Create a Blob from the Buffer
-      const imageBlob = new Blob([imageBuffer], {type: 'image/png'});
-      const clipboardItems = new ClipboardItem({ 'image/png': imageBlob });
-  
-      // Write the image to the clipboard
-      await navigator.clipboard.write([clipboardItems]);
-    }
-  };
-
 
   const markdownContainerRef = useRef<HTMLDivElement | null>(null);
 

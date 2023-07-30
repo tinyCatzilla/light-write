@@ -14,9 +14,10 @@
   --text-colour: #000; /* Colour for text */
 }
 
-/* body {
-  color: var(--text-colour);
+body {
+  /* overflow-y: hidden; */
 }
+
 .edit-container, .preview-container {
   background: var(--light-grey);
 }
@@ -53,13 +54,6 @@
     width: 100%;
   }
 
-  .slate-editor {
-    padding: 20px;
-    height: calc(100vh - 60px); 
-    width: 100%; 
-    overflow: auto; /* Add scrollbars when content overflows */
-    outline: 0px solid transparent;
-  }
 
   .edit-container {
     /* background:rgba(255, 0, 0, 0.308); */
@@ -106,14 +100,6 @@
   display: flex;
 }
 
-.toolbar {
-  padding: 0 0 10px 10px; /* directions: top/bottom left/right */
-  flex-wrap: wrap;
-  min-height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-}
 
 .toolbarBtn {
   border-radius: 1px;
@@ -122,8 +108,26 @@
   transition: all 0.2s ease-in-out;
 }
 
-select, .test2 {
-  border-radius: 4px;
-  padding: 4px;
-  margin: 4px;
+.toolbar {
+  padding: 0 0 10px 10px; 
+  flex-wrap: wrap;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-grow: 0; /* Don't allow toolbar to grow beyond content size */
+  flex-shrink: 0; /* Don't allow toolbar to shrink below content size */
+  flex-basis: auto; /* Default size based on content */
+}
+
+.edit-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.slate-editor {
+  padding: 20px;
+  flex-grow: 1; /* Will grow to take up remaining space */
+  overflow: auto; /* Add scrollbars when content overflows */
+  outline: 0px solid transparent;
 }
